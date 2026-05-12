@@ -1,0 +1,123 @@
+simulation:
+  start_year: 2025
+  end_year: 2100
+  timestep_years: 1
+  seed: 42
+  monte_carlo_runs: 80
+  scenario: baseline
+
+initial_state:
+  population_billions: 8.2
+  industrial_output_index: 1.0
+  industrial_capital_index: 1.0
+  food_index: 1.0
+  debt_to_gdp: 2.6
+  inflation_index: 1.0
+  financial_stress: 0.15
+  political_stability: 0.78
+  migration_pressure: 0.12
+  systemic_stability: 0.78
+  pollution_index: 1.0
+  cumulative_pollution: 100.0
+  warming_c: 1.25
+  climate_damage: 0.06
+  crop_damage: 0.05
+
+energy:
+  demand_ej: 620.0
+  supply:
+    oil_ej: 185.0
+    gas_ej: 145.0
+    coal_ej: 155.0
+    renewables_ej: 95.0
+    nuclear_ej: 40.0
+  depletion:
+    oil_annual: 0.022
+    gas_annual: 0.015
+    coal_annual: 0.008
+  eroi:
+    oil: 18.0
+    gas: 24.0
+    coal: 35.0
+    renewables: 16.0
+    nuclear: 60.0
+  eroi_decline:
+    oil: 0.018
+    gas: 0.012
+    coal: 0.005
+  renewables_growth: 0.04
+  nuclear_growth: 0.012
+  infrastructure_decay: 0.01
+
+ai_compute:
+  initial_compute_index: 1.0
+  annual_compute_growth: 0.24
+  efficiency_improvement: 0.12
+  diminishing_return_exponent: 0.18
+  baseline_ai_power_ej: 8.0
+  cooling_multiplier: 1.25
+  gpu_supply_index: 1.0
+  semiconductor_bottleneck_sensitivity: 0.4
+  capital_competition_weight: 0.12
+
+agriculture:
+  baseline_yield_index: 1.0
+  fertilizer_dependency: 0.42
+  nitrogen_supply_index: 1.0
+  phosphate_supply_index: 1.0
+  potash_supply_index: 1.0
+  diesel_dependency: 0.24
+  irrigation_stress: 0.12
+  climate_sensitivity: 0.5
+
+industry:
+  maintenance_need: 0.08
+  supply_chain_resilience: 0.72
+  capital_depreciation: 0.04
+  energy_intensity: 0.78
+
+finance:
+  debt_growth_base: 0.04
+  fragility_sensitivity: 0.35
+  inflation_sensitivity_energy: 0.22
+  inflation_sensitivity_food: 0.2
+  crisis_threshold: 0.75
+
+geopolitics:
+  baseline_tension: 0.28
+  escalation_sensitivity: 0.45
+  sanctions_sensitivity: 0.35
+  random_event_scale: 0.08
+  chokepoints:
+    hormuz:
+      baseline_risk: 0.06
+      flow_share: 0.2
+    suez:
+      baseline_risk: 0.04
+      flow_share: 0.12
+    panama:
+      baseline_risk: 0.03
+      flow_share: 0.08
+    taiwan_semis:
+      baseline_risk: 0.05
+      flow_share: 0.15
+
+trade:
+  rerouting_penalty: 0.25
+  shipping_elasticity: 0.65
+  fragmentation_drift: 0.01
+  collapse_threshold: 0.32
+
+climate:
+  emissions_intensity: 0.006
+  sink_rate: 0.011
+  warming_sensitivity: 0.017
+  disaster_scale: 0.12
+
+stability_weights:
+  food_security: 0.22
+  energy_availability: 0.2
+  industrial_output: 0.18
+  political_stability: 0.16
+  financial_health: 0.14
+  climate_damage: 0.1

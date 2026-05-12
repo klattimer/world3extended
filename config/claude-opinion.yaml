@@ -1,0 +1,123 @@
+simulation:
+  start_year: 2026
+  end_year: 2040
+  timestep_years: 1
+  seed: 42
+  monte_carlo_runs: 80
+  scenario: hormuz_crisis_baseline
+
+initial_state:
+  population_billions: 8.25
+  industrial_output_index: 0.94          # ~6% decline from supply chain disruptions
+  industrial_capital_index: 0.97         # some capital idled or damaged
+  food_index: 0.91                       # fertilizer shortages hitting yields
+  debt_to_gdp: 2.85                      # fiscal responses to crisis adding debt
+  inflation_index: 1.18                  # ~18% cumulative price surge since 2025
+  financial_stress: 0.42                 # elevated from 0.15; credit spreads widening
+  political_stability: 0.62              # down from 0.78; protests, government strain
+  migration_pressure: 0.24              # doubled; food/fuel stress driving displacement
+  systemic_stability: 0.58               # significantly degraded
+  pollution_index: 0.96                  # slight dip from reduced industrial activity
+  cumulative_pollution: 102.0
+  warming_c: 1.32
+  climate_damage: 0.07
+  crop_damage: 0.11                      # up sharply—fertilizer + climate combined
+
+energy:
+  demand_ej: 590.0                       # demand destruction of ~5% from high prices
+  supply:
+    oil_ej: 148.0                        # ~20% loss; Hormuz closure, damaged infrastructure
+    gas_ej: 118.0                        # ~19% loss; same chokepoint effects
+    coal_ej: 162.0                       # slight uptick as substitution fuel
+    renewables_ej: 102.0                 # growth continued but slowed by supply chains
+    nuclear_ej: 41.0                     # modest increase
+  depletion:
+    oil_annual: 0.024                    # accelerated draw on accessible reserves
+    gas_annual: 0.017
+    coal_annual: 0.009
+  eroi:
+    oil: 15.5                            # degraded; easy fields offline, harder to access
+    gas: 21.0
+    coal: 34.0
+    renewables: 15.0                     # mineral supply chain stress
+    nuclear: 58.0
+  eroi_decline:
+    oil: 0.022                           # faster decline under stress
+    gas: 0.014
+    coal: 0.006
+  renewables_growth: 0.025               # slowed by semiconductor/mineral bottlenecks
+  nuclear_growth: 0.008                  # projects delayed
+  infrastructure_decay: 0.018            # maintenance deferred; attacks on facilities
+
+ai_compute:
+  initial_compute_index: 1.05            # still growing but constrained
+  annual_compute_growth: 0.18            # down from 0.24; power/chip limits
+  efficiency_improvement: 0.11
+  diminishing_return_exponent: 0.20
+  baseline_ai_power_ej: 9.5              # data centers still expanding
+  cooling_multiplier: 1.28
+  gpu_supply_index: 0.82                 # Taiwan risk, shipping disruptions
+  semiconductor_bottleneck_sensitivity: 0.55
+  capital_competition_weight: 0.18       # more capital going to energy/defense
+
+agriculture:
+  baseline_yield_index: 0.88             # significant hit from fertilizer loss
+  fertilizer_dependency: 0.42
+  nitrogen_supply_index: 0.68            # gas-based ammonia production collapsed
+  phosphate_supply_index: 0.78           # shipping disruptions
+  potash_supply_index: 0.82              # similar
+  diesel_dependency: 0.26                # slightly higher as alternatives scarce
+  irrigation_stress: 0.22                # pumping costs up with fuel prices
+  climate_sensitivity: 0.55
+
+industry:
+  maintenance_need: 0.10                 # higher; parts scarce, costs up
+  supply_chain_resilience: 0.48          # down sharply from 0.72
+  capital_depreciation: 0.05             # faster with deferred maintenance
+  energy_intensity: 0.82                 # efficiency backsliding under stress
+
+finance:
+  debt_growth_base: 0.055                # crisis spending accelerating debt
+  fragility_sensitivity: 0.48
+  inflation_sensitivity_energy: 0.32     # pass-through stronger in crisis
+  inflation_sensitivity_food: 0.28
+  crisis_threshold: 0.65                 # markets more fragile; threshold lower
+
+geopolitics:
+  baseline_tension: 0.58                 # up sharply from 0.28
+  escalation_sensitivity: 0.55
+  sanctions_sensitivity: 0.45
+  random_event_scale: 0.14               # higher tail risks
+  chokepoints:
+    hormuz:
+      baseline_risk: 0.85                # effectively closed; very high ongoing risk
+      flow_share: 0.05                   # down from 0.20; most flow blocked
+    suez:
+      baseline_risk: 0.18                # spillover risk elevated
+      flow_share: 0.10
+    panama:
+      baseline_risk: 0.06                # drought + rerouting strain
+      flow_share: 0.11                   # slight uptick as alternative route
+    taiwan_semis:
+      baseline_risk: 0.12                # heightened amid broader tensions
+      flow_share: 0.14
+
+trade:
+  rerouting_penalty: 0.45                # up sharply; longer routes, insurance costs
+  shipping_elasticity: 0.48              # less flexible under stress
+  fragmentation_drift: 0.035             # accelerating bloc formation
+  collapse_threshold: 0.28               # system more brittle
+
+climate:
+  emissions_intensity: 0.0055            # slight dip from industrial slowdown
+  sink_rate: 0.0105
+  warming_sensitivity: 0.018
+  disaster_scale: 0.15                   # compounding with conflict disruption
+
+stability_weights:
+  food_security: 0.26                    # elevated priority given shortages
+  energy_availability: 0.24              # similarly critical
+  industrial_output: 0.16
+  political_stability: 0.14
+  financial_health: 0.12
+  climate_damage: 0.08
