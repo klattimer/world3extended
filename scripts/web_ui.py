@@ -9,6 +9,8 @@ Run with: bokeh serve scripts/web_ui.py --show
 
 Or from root directory:
     python -m bokeh serve scripts/web_ui.py --show --allow-websocket-origin=localhost:5006
+
+Then open: http://localhost:5006/web_ui
 """
 
 from __future__ import annotations
@@ -23,13 +25,13 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, row
 from bokeh.models import (
     ColumnDataSource,
+    Div,
     HoverTool,
     RangeSlider,
     Select,
     Slider,
     Tabs,
     TabPanel,
-    TextInput,
 )
 from bokeh.plotting import figure
 from bokeh.palettes import Category10
@@ -107,20 +109,20 @@ def create_scenario_config_panel() -> tuple:
     scenario_select = Select(title="Scenario:", value="baseline", options=scenarios)
 
     # Shock timing controls
-    hormuz_timing = Slider(title="Hormuz Closure Year:", min=2025, max=2040, value=2029, step=1)
-    hormuz_severity = Slider(title="Hormuz Severity (0-1):", min=0, max=1, value=0.95, step=0.05)
+    hormuz_timing = Slider(title="Hormuz Closure Year:", start=2025, end=2040, value=2029, step=1)
+    hormuz_severity = Slider(title="Hormuz Severity (0-1):", start=0, end=1, value=0.95, step=0.05)
 
-    suez_timing = Slider(title="Suez Closure Year:", min=2025, max=2040, value=2029, step=1)
-    suez_severity = Slider(title="Suez Severity (0-1):", min=0, max=1, value=0.95, step=0.05)
+    suez_timing = Slider(title="Suez Closure Year:", start=2025, end=2040, value=2029, step=1)
+    suez_severity = Slider(title="Suez Severity (0-1):", start=0, end=1, value=0.95, step=0.05)
 
-    panama_timing = Slider(title="Panama Closure Year:", min=2025, max=2040, value=2028, step=1)
-    panama_severity = Slider(title="Panama Severity (0-1):", min=0, max=1, value=0.95, step=0.05)
+    panama_timing = Slider(title="Panama Closure Year:", start=2025, end=2040, value=2028, step=1)
+    panama_severity = Slider(title="Panama Severity (0-1):", start=0, end=1, value=0.95, step=0.05)
 
-    taiwan_timing = Slider(title="Taiwan Shock Year:", min=2025, max=2040, value=2031, step=1)
-    taiwan_severity = Slider(title="Taiwan Severity (0-1):", min=0, max=1, value=0.95, step=0.05)
+    taiwan_timing = Slider(title="Taiwan Shock Year:", start=2025, end=2040, value=2031, step=1)
+    taiwan_severity = Slider(title="Taiwan Severity (0-1):", start=0, end=1, value=0.95, step=0.05)
 
-    fertilizer_timing = Slider(title="Fertilizer Shock Year:", min=2025, max=2040, value=2028, step=1)
-    fertilizer_severity = Slider(title="Fertilizer Severity (0-1):", min=0, max=1, value=1.0, step=0.05)
+    fertilizer_timing = Slider(title="Fertilizer Shock Year:", start=2025, end=2040, value=2028, step=1)
+    fertilizer_severity = Slider(title="Fertilizer Severity (0-1):", start=0, end=1, value=1.0, step=0.05)
 
     controls = column(
         scenario_select,
@@ -155,42 +157,42 @@ def create_subsystem_param_panel() -> tuple:
     """Create subsystem rate and parameter adjustment controls."""
     # Energy system
     oil_depletion = Slider(
-        title="Oil Depletion Rate (annual %):", min=0.01, max=0.1, value=0.025, step=0.005
+        title="Oil Depletion Rate (annual %):", start=0.01, end=0.1, value=0.025, step=0.005
     )
     eroi_decline = Slider(
-        title="EROI Decline Rate (annual %):", min=0.005, max=0.05, value=0.02, step=0.005
+        title="EROI Decline Rate (annual %):", start=0.005, end=0.05, value=0.02, step=0.005
     )
     renewable_growth = Slider(
-        title="Renewable Growth Rate (annual %):", min=0.05, max=0.25, value=0.12, step=0.02
+        title="Renewable Growth Rate (annual %):", start=0.05, end=0.25, value=0.12, step=0.02
     )
 
     # AI system
     ai_compute_growth = Slider(
-        title="AI Compute Growth Rate (annual %):", min=0.15, max=0.5, value=0.36, step=0.05
+        title="AI Compute Growth Rate (annual %):", start=0.15, end=0.5, value=0.36, step=0.05
     )
     ai_power_fraction = Slider(
-        title="AI Max Power Fraction (%):", min=0.06, max=0.20, value=0.10, step=0.01
+        title="AI Max Power Fraction (%):", start=0.06, end=0.20, value=0.10, step=0.01
     )
 
     # Population
     death_rate_stress_sensitivity = Slider(
-        title="Death Rate Stress Sensitivity:", min=0.5, max=2.0, value=1.3, step=0.1
+        title="Death Rate Stress Sensitivity:", start=0.5, end=2.0, value=1.3, step=0.1
     )
 
     # Finance
-    debt_growth = Slider(title="Debt Growth Rate (annual %):", min=0.01, max=0.10, value=0.03, step=0.01)
+    debt_growth = Slider(title="Debt Growth Rate (annual %):", start=0.01, end=0.10, value=0.03, step=0.01)
     financial_fragility = Slider(
-        title="Financial Fragility Sensitivity:", min=0.1, max=1.0, value=0.5, step=0.1
+        title="Financial Fragility Sensitivity:", start=0.1, end=1.0, value=0.5, step=0.1
     )
 
     # Trade
     fragmentation_drift = Slider(
-        title="Trade Fragmentation Drift (annual):", min=0.005, max=0.05, value=0.02, step=0.005
+        title="Trade Fragmentation Drift (annual):", start=0.005, end=0.05, value=0.02, step=0.005
     )
 
     # Climate
     warming_sensitivity = Slider(
-        title="Climate Warming Sensitivity:", min=1.0, max=3.0, value=1.8, step=0.2
+        title="Climate Warming Sensitivity:", start=1.0, end=3.0, value=1.8, step=0.2
     )
 
     controls = column(
@@ -375,9 +377,8 @@ def main() -> None:
                 "stability": initial_df.get("systemic_stability", np.zeros(len(initial_df))),
             }
         ),
-        "metrics": TextInput(
-            value="<b>Initial Load</b><br>Running...",
-            title="Key Metrics (2035)",
+        "metrics": Div(
+            text="<b>Key Metrics (2035)</b><br>Initial load running...",
             width=300,
         ),
     }
@@ -424,8 +425,8 @@ def main() -> None:
     curdoc().add_root(main_layout)
     curdoc().title = "World3 Extended: Interactive Parameter Explorer"
 
-    logger.info("Web UI ready at http://localhost:5006")
+    logger.info("Web UI ready at http://localhost:5006/web_ui")
 
 
-if __name__ == "__main__":
-    main()
+# Bokeh executes this script as a module via `bokeh serve`, so initialize on import.
+main()

@@ -82,7 +82,7 @@ Explore parameter space and run scenario sensitivity analysis with real-time fee
 bokeh serve scripts/web_ui.py --show
 ```
 
-This launches an interactive dashboard at `http://localhost:5006` with:
+This launches an interactive dashboard at `http://localhost:5006/web_ui` with:
 - **Scenario & shock tuning:** Select scenarios and adjust shock timing/severity
 - **Subsystem parameter sliders:** Modify energy depletion rates, EROI decline, AI growth, financial fragility, and more
 - **Live 10-year preview:** Simulation updates as you adjust parameters
