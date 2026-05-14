@@ -23,6 +23,11 @@ initial_state:
   warming_c: 1.25
   climate_damage: 0.06
   crop_damage: 0.05
+  groundwater_remaining_km3: 12000.0
+  water_stress_index: 0.15
+  thermal_pollution_index: 0.01
+  co2_scarcity_index: 0.0
+  livestock_culling_capacity: 1.0
 
 energy:
   demand_ej: 620.0
@@ -114,6 +119,24 @@ climate:
   sink_rate: 0.011
   warming_sensitivity: 0.017
   disaster_scale: 0.12
+
+water:
+  renewable_freshwater_km3: 37500.0
+  groundwater_remaining_km3: 12000.0
+  groundwater_depletion_rate: 0.02
+  human_consumption_per_capita_km3: 0.0009
+  agricultural_fraction: 0.7
+  baseline_ai_power_ej: 8.0
+  cooling_multiplier: 1.25
+  thermal_pollution_multiplier: 0.0001
+
+co2_availability:
+  co2_production_baseline_mt: 37000.0
+  food_processing_co2_per_capita_mt: 0.0008
+  medical_co2_per_capita_mt: 0.0001
+  fertilizer_demand_co2_fraction: 0.15
+  euthanasia_demand_baseline_mt: 8000.0
+  livestock_feed_pressure_multiplier: 0.8
 
 stability_weights:
   food_security: 0.22

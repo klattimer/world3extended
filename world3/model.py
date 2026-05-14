@@ -14,12 +14,14 @@ import yaml
 from world3.systems.agriculture import AgricultureSystem
 from world3.systems.ai_compute import AIComputeSystem
 from world3.systems.climate import ClimateSystem
+from world3.systems.co2_availability import CO2AvailabilitySystem
 from world3.systems.energy import EnergySystem
 from world3.systems.finance import FinanceSystem
 from world3.systems.geopolitics import GeopoliticsSystem
 from world3.systems.industry import IndustrySystem
 from world3.systems.population import PopulationSystem
 from world3.systems.trade import TradeSystem
+from world3.systems.water import WaterSystem
 from world3.utils.metrics import cascade_pressure, compute_systemic_stability, detect_collapse
 
 
@@ -94,6 +96,8 @@ class World3Model:
 		self.climate = ClimateSystem(self.params["climate"])
 		self.finance = FinanceSystem(self.params["finance"])
 		self.population = PopulationSystem()
+		self.water = WaterSystem(self.params["water"])
+		self.co2_availability = CO2AvailabilitySystem(self.params["co2_availability"])
 
 	@staticmethod
 	def load_yaml(path: Path) -> dict[str, Any]:
@@ -119,6 +123,8 @@ class World3Model:
 			"death_rate": 0.009,
 			"famine_mortality": 0.0,
 			"migration_pressure": float(init["migration_pressure"]),
+			"labor_force_index": 1.0,
+			"population_change_rate": 0.0,
 			"political_stability": float(init["political_stability"]),
 			"industrial_output_index": float(init["industrial_output_index"]),
 			"industrial_capital_index": float(init["industrial_capital_index"]),
@@ -169,6 +175,14 @@ class World3Model:
 			"cascade_pressure": 0.0,
 			"systemic_stability": float(init["systemic_stability"]),
 			"collapsed": 0.0,
+			"groundwater_remaining_km3": float(init.get("groundwater_remaining_km3", 12000.0)),
+			"water_stress_index": float(init.get("water_stress_index", 0.0)),
+			"thermal_pollution_index": float(init.get("thermal_pollution_index", 0.0)),
+			"agricultural_water_stress": 0.0,
+			"human_water_scarcity": 0.0,
+			"co2_scarcity_index": float(init.get("co2_scarcity_index", 0.0)),
+			"livestock_culling_capacity": float(init.get("livestock_culling_capacity", 1.0)),
+			"livestock_feed_pressure": 0.0,
 		}
 
 	def _year_shocks(self, year: int) -> tuple[dict[str, float], dict[str, float]]:
@@ -230,6 +244,24 @@ class World3Model:
 				dt_years=dt_years,
 			)
 			self.state.update(ai_out)
+
+			water_out = self.water.step(
+				state=self.state,
+				ai_compute_index=self.state["ai_compute_index"],
+				population_billions=self.state["population_billions"],
+				industrial_output=self.state["industrial_output_index"],
+				dt_years=dt_years,
+			)
+			self.state.update(water_out)
+
+			co2_out = self.co2_availability.step(
+				state=self.state,
+				industrial_output=self.state["industrial_output_index"],
+				population_billions=self.state["population_billions"],
+				food_index=self.state["food_index"],
+				dt_years=dt_years,
+			)
+			self.state.update(co2_out)
 
 			ag_out = self.agriculture.step(state=self.state, shocks=exogenous_shocks, dt_years=dt_years)
 			self.state.update(ag_out)

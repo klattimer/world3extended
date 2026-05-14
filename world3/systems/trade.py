@@ -29,6 +29,7 @@ class TradeSystem:
             weighted_disruption += share * chokepoint_disruption.get(cp_name, 0.0)
 
         weighted_disruption = float(np.clip(weighted_disruption, 0.0, 1.0))
+        max_chokepoint_disruption = float(max(chokepoint_disruption.values(), default=0.0))
 
         fragmentation = np.clip(
             state["trade_fragmentation"]
@@ -38,13 +39,15 @@ class TradeSystem:
         )
 
         shipping_disruption = np.clip(
-            elasticity * weighted_disruption + rerouting_penalty * fragmentation,
+            elasticity * weighted_disruption
+            + rerouting_penalty * fragmentation
+            + 0.35 * max(0.0, max_chokepoint_disruption - 0.6),
             0.0,
             1.0,
         )
 
         trade_flow = np.clip(
-            1.0 - shipping_disruption - 0.25 * sanctions_level,
+            1.0 - shipping_disruption - 0.25 * sanctions_level - 0.2 * max_chokepoint_disruption,
             0.0,
             1.1,
         )

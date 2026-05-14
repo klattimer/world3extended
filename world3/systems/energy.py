@@ -51,7 +51,7 @@ class EnergySystem:
 
             remaining = max(0.0, state[level_key] * ((1.0 - depletion) ** dt_years))
             eroi = max(2.5, state[eroi_key] * ((1.0 - eroi_decline) ** dt_years))
-            extraction_penalty = np.clip(1.0 - 0.35 * instability - 0.22 * finance_stress, 0.45, 1.02)
+            extraction_penalty = np.clip(1.0 - 0.18 * instability - 0.1 * finance_stress, 0.6, 1.02)
             trade_penalty = np.clip(0.7 + 0.3 * trade_flow, 0.5, 1.0)
             gross = remaining * extraction_penalty * trade_penalty
 
@@ -82,9 +82,16 @@ class EnergySystem:
         demand = max(
             100.0,
             state["energy_demand_ej"]
-            * (1.0 + (0.012 * state["population_billions"] - 0.02 * finance_stress) * dt_years),
+            * (1.0 + (0.0016 * state["population_billions"] - 0.02 * finance_stress) * dt_years),
         )
         shortage = float(np.clip((demand - total_net) / max(demand, 1e-6), 0.0, 1.0))
+
+        fossil_supply = float(outputs["oil_ej"] + outputs["gas_ej"] + outputs["coal_ej"])
+        liquid_fuel_supply = float(outputs["oil_ej"] + 0.45 * outputs["gas_ej"])
+        liquid_fuel_demand = max(30.0, 0.42 * demand)
+        liquid_fuel_shortage = float(
+            np.clip((liquid_fuel_demand - liquid_fuel_supply) / max(liquid_fuel_demand, 1e-6), 0.0, 1.0)
+        )
 
         outputs.update(
             {
@@ -92,6 +99,9 @@ class EnergySystem:
                 "energy_gross_supply_ej": float(total_gross),
                 "energy_demand_ej": float(demand),
                 "energy_shortage": shortage,
+                "fossil_supply_ej": fossil_supply,
+                "liquid_fuel_supply_ej": liquid_fuel_supply,
+                "liquid_fuel_shortage": liquid_fuel_shortage,
                 "energy_price_index": float(1.0 + 2.2 * shortage + 0.6 * instability),
             }
         )

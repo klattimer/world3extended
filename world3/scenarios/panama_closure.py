@@ -8,7 +8,7 @@ def scenario() -> dict[str, Any]:
         "description": "Multi-year Panama Canal disruption with rerouting and trade fragmentation stress.",
         "overrides": {
             "geopolitics": {
-                "baseline_tension": 0.34,
+                    "baseline_tension": 0.29,
                 "random_event_scale": 0.1,
             },
             "trade": {

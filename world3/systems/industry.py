@@ -21,6 +21,8 @@ class IndustrySystem:
         available_energy_for_industry = max(0.0, state["energy_supply_ej"] - state["ai_power_demand_ej"])
         required_energy = max(20.0, state["energy_demand_ej"] * energy_intensity)
         energy_factor = np.clip(available_energy_for_industry / required_energy, 0.0, 1.2)
+        liquid_fuel_factor = np.clip(1.0 - 0.85 * state.get("liquid_fuel_shortage", 0.0), 0.05, 1.0)
+        labor_factor = np.clip(state.get("labor_force_index", 1.0), 0.2, 1.2)
 
         disruption_penalty = (
             0.25 * state["shipping_disruption"]
@@ -31,11 +33,17 @@ class IndustrySystem:
             + state["ai_capital_competition"]
         )
 
-        gross_output = state["industrial_output_index"] * energy_factor * max(0.2, 1.0 - disruption_penalty)
+        gross_output = (
+            state["industrial_output_index"]
+            * energy_factor
+            * liquid_fuel_factor
+            * labor_factor
+            * max(0.12, 1.0 - disruption_penalty)
+        )
         adaptation = 0.015 * (1.0 - state["financial_stress"]) * (1.0 - state["trade_fragmentation"]) * dt_years
         industrial_output = np.clip(
             state["industrial_output_index"] + (gross_output - state["industrial_output_index"]) * dt_years + adaptation,
-            0.05,
+            0.005,
             2.0,
         )
 
@@ -43,7 +51,7 @@ class IndustrySystem:
         industrial_capital = np.clip(
             state["industrial_capital_index"] * (1.0 - (depreciation + maintenance_gap) * dt_years)
             + 0.03 * industrial_output * dt_years,
-            0.05,
+            0.01,
             2.0,
         )
 

@@ -35,10 +35,16 @@ class ClimateSystem:
         fossil_energy = state["oil_ej"] + state["gas_ej"] + state["coal_ej"]
         emissions = emissions_intensity * fossil_energy * (0.6 + 0.4 * state["industrial_output_index"])
 
+        # === NEW: Thermal pollution from data centre cooling ===
+        thermal_pollution = state.get("thermal_pollution_index", 0.0)
+
         cumulative_pollution = float(_pollution_update(state["cumulative_pollution"], emissions, sink_rate, dt_years))
         pollution_index = max(0.0, cumulative_pollution / 100.0)
 
-        warming = state["warming_c"] + warming_sensitivity * np.log1p(max(0.0, pollution_index - 0.8)) * dt_years
+        # Thermal pollution directly adds to effective pollution index
+        effective_pollution_index = pollution_index + thermal_pollution
+
+        warming = state["warming_c"] + warming_sensitivity * np.log1p(max(0.0, effective_pollution_index - 0.8)) * dt_years
         climate_damage = np.clip(0.03 + 0.015 * warming**2, 0.0, 0.95)
         crop_damage = np.clip(0.5 * climate_damage + 0.05 * state["shipping_disruption"], 0.0, 0.95)
 

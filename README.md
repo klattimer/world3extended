@@ -232,9 +232,50 @@ pytest --cov=world3 --cov-report=term
 - Financial module captures fragility channels, not market microstructure.
 - AI scaling assumptions are plausible but uncertain under frontier innovation shifts.
 
+## Parameter Sensitivity & Web UI Behavior
+
+### Why Sliders Have Different Effects by Scenario
+
+Diagnostic analysis shows that subsystem parameter sliders *are* correctly applied and affect underlying model variables (energy supplies vary 50-150% with slider changes). However, **stability metrics show different sensitivity depending on scenario severity**:
+
+| Scenario | Slider Effect on Stability | Reason |
+|----------|---------------------------|--------|
+| **baseline** | HIGH | Gradual degradation; parameter tuning significantly delays collapse |
+| **ai_energy_crisis** | MEDIUM-HIGH | AI growth dominates, but renewable/EROI adjustments provide resilience |
+| **hormuz_closure** | MEDIUM | Single chokepoint; financial/energy parameters can mitigate impact |
+| **polycrisis** | LOW | Simultaneous geopolitical + climate + financial shocks overwhelm individual parameter effects |
+
+**Key finding:** In the polycrisis scenario, geopolitical shocks trigger maximum financial stress (→ exponential debt growth) and conflict intensity (→ immediate institutional failure), which dominate outcomes regardless of whether oil depletes 1% or 8% annually. This is **not a bug**—it reflects genuine dynamics where extreme simultaneous crises exceed adaptive capacity.
+
+**Implication:** To explore parameter sensitivity, use milder scenarios (baseline, hormuz_closure) or shorter time horizons. Polycrisis represents worst-case collapse; slider effects are visible on longer timescales (2025–2200) or in scenarios with fewer simultaneous shocks.
+
+See `SLIDER_ANALYSIS_FINDINGS.md` for detailed diagnostic results.
+
+### Planned Enhancements to Model Realism
+
+**Water System Coupling** (in development)
+- Data centre cooling water demand: scales with AI compute index; redirects from potable supplies
+- Agricultural water stress: feedback from cooling redirection + thermal pollution
+- Food security impact: water scarcity → reduced irrigation → yield penalty
+
+**CO2 Availability Constraint** (in development)
+- CO2 as industrial byproduct (cement, ammonia production)
+- Competing demands: food processing, agriculture, medical, euthanasia
+- Livestock culling bottleneck: when CO2 scarce, culling capacity constrained → unsustainable herds → food production collapse
+
+**Enhanced Commodity Price Dynamics** (future)
+- Granular tracking of agricultural commodity prices separate from inflation
+- Oil/gas price volatility tied to supply/demand imbalances
+- Feedback from prices to investment & consumption decisions
+
+These enhancements will expand the model's ability to capture supply-chain bottlenecks and resource competition that currently affect outputs indirectly through aggregate stress metrics.
+
 ## Suggested Research Extensions
 
 - Add regional agent-based layers (for example with Mesa) and migration corridors.
+- Implement water system subsystem with data centre cooling + agricultural water competition.
+- Add CO2 availability constraint affecting livestock culling capacity and food production.
 - Endogenize policy adaptation and demand destruction pathways.
 - Couple to richer climate/economic IAM structures.
 - Integrate sector-level supply chain graphs and inventory dynamics.
+- Add individual parameter response curves to sensitivity analysis in `main.py` output.
