@@ -16,6 +16,7 @@ class TradeSystem:
         self,
         state: dict[str, float],
         sanctions_level: float,
+        dt_years: float,
         chokepoint_disruption: dict[str, float],
     ) -> dict[str, float]:
         rerouting_penalty = float(self.params["rerouting_penalty"])
@@ -31,10 +32,7 @@ class TradeSystem:
 
         fragmentation = np.clip(
             state["trade_fragmentation"]
-            + frag_drift
-            + 0.08 * sanctions_level
-            + 0.05 * weighted_disruption
-            - 0.01 * state["political_stability"],
+            + (frag_drift + 0.08 * sanctions_level + 0.05 * weighted_disruption - 0.01 * state["political_stability"]) * dt_years,
             0.0,
             1.0,
         )

@@ -10,3 +10,4 @@ geopandas>=0.14
 imageio>=2.34
 imageio-ffmpeg>=0.5
 pyogrio>=0.7
+bokeh>=3.3

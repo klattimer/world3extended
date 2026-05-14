@@ -2,6 +2,7 @@ simulation:
   start_year: 2025
   end_year: 2100
   timestep_years: 1
+  timestep_days: null
   seed: 42
   monte_carlo_runs: 80
   scenario: baseline

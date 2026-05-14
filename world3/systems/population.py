@@ -11,7 +11,7 @@ class PopulationSystem:
     def __init__(self, params: dict[str, Any] | None = None) -> None:
         self.params = params or {}
 
-    def step(self, state: dict[str, float]) -> dict[str, float]:
+    def step(self, state: dict[str, float], dt_years: float) -> dict[str, float]:
         population = max(0.1, state["population_billions"])
 
         fertility_decline = 0.004 * np.log1p(max(0.0, state["industrial_output_index"] - 0.8))
@@ -30,10 +30,15 @@ class PopulationSystem:
         )
 
         net_growth = birth_rate - death_rate
-        new_population = np.clip(population * (1.0 + net_growth), 0.2, 13.0)
+        new_population = np.clip(population * (1.0 + net_growth * dt_years), 0.2, 13.0)
 
         instability_hit = 0.2 * state["conflict_intensity"] + 0.15 * state["food_stress"]
-        political_stability = np.clip(state["political_stability"] - instability_hit + 0.05 * (1.0 - state["financial_stress"]), 0.0, 1.0)
+        political_stability = np.clip(
+            state["political_stability"]
+            + (-instability_hit + 0.05 * (1.0 - state["financial_stress"])) * dt_years,
+            0.0,
+            1.0,
+        )
 
         return {
             "population_billions": float(new_population),

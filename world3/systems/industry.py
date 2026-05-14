@@ -11,7 +11,7 @@ class IndustrySystem:
     def __init__(self, params: dict[str, Any]) -> None:
         self.params = params
 
-    def step(self, state: dict[str, float]) -> dict[str, float]:
+    def step(self, state: dict[str, float], dt_years: float) -> dict[str, float]:
         p = self.params
         maintenance_need = float(p["maintenance_need"])
         resilience = float(p["supply_chain_resilience"])
@@ -32,12 +32,17 @@ class IndustrySystem:
         )
 
         gross_output = state["industrial_output_index"] * energy_factor * max(0.2, 1.0 - disruption_penalty)
-        adaptation = 0.015 * (1.0 - state["financial_stress"]) * (1.0 - state["trade_fragmentation"])
-        industrial_output = np.clip(gross_output + adaptation, 0.05, 2.0)
+        adaptation = 0.015 * (1.0 - state["financial_stress"]) * (1.0 - state["trade_fragmentation"]) * dt_years
+        industrial_output = np.clip(
+            state["industrial_output_index"] + (gross_output - state["industrial_output_index"]) * dt_years + adaptation,
+            0.05,
+            2.0,
+        )
 
         maintenance_gap = max(0.0, maintenance_need - 0.06 * industrial_output)
         industrial_capital = np.clip(
-            state["industrial_capital_index"] * (1.0 - depreciation - maintenance_gap) + 0.03 * industrial_output,
+            state["industrial_capital_index"] * (1.0 - (depreciation + maintenance_gap) * dt_years)
+            + 0.03 * industrial_output * dt_years,
             0.05,
             2.0,
         )

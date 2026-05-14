@@ -1,5 +1,7 @@
 # World3 Extended: 21st-Century Global Polycrisis Simulator
 
+[![Tests](https://github.com/karllattimer/w4/actions/workflows/tests.yml/badge.svg)](https://github.com/karllattimer/w4/actions/workflows/tests.yml)
+
 World3 Extended is a production-quality, modular Python package for exploratory system-dynamics simulation of civilisational stability under interacting 21st-century constraints.
 
 It extends World3-style dynamics to include:
@@ -33,52 +35,6 @@ The model references and operationalizes ideas from:
 - Tainter-style complexity/collapse frameworks
 - Supply-chain fragility and chokepoint dependence
 
-## Project Structure
-
-```text
-world3_extended/
-├── main.py
-├── requirements.txt
-├── README.md
-├── config/
-│   └── default.yaml
-├── world3/
-│   ├── __init__.py
-│   ├── init.py
-│   ├── model.py
-│   ├── systems/
-│   │   ├── __init__.py
-│   │   ├── population.py
-│   │   ├── energy.py
-│   │   ├── ai_compute.py
-│   │   ├── agriculture.py
-│   │   ├── industry.py
-│   │   ├── finance.py
-│   │   ├── climate.py
-│   │   ├── geopolitics.py
-│   │   └── trade.py
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   ├── plotting.py
-│   │   ├── metrics.py
-│   │   └── montecarlo.py
-│   └── scenarios/
-│       ├── __init__.py
-│       ├── baseline.py
-│       ├── ai_energy_crisis.py
-│       ├── hormuz_closure.py
-│       ├── panama_closure.py
-│       ├── fertilizer_shock.py
-│       ├── polycrisis.py
-│       └── suez_taiwan_escalation.py
-├── notebooks/
-│   └── exploratory_analysis.ipynb
-└── tests/
-    ├── test_energy.py
-    ├── test_population.py
-    └── test_stability.py
-```
-
 ## Installation
 
 Python 3.12+ recommended.
@@ -89,19 +45,102 @@ pip install -r requirements.txt
 
 ## Run
 
+### Standard annual resolution
+
 ```bash
 python main.py
-```
-
-Optional:
-
-```bash
 python main.py --scenario polycrisis --output outputs_poly
 ```
+
+### Daily resolution (higher temporal detail)
+
+```bash
+python main.py --scenario polycrisis --timestep-days 1 --output outputs_poly_daily
+```
+
+### Map video generation
+
+Generate national-resolution choropleth map videos showing systemic stress over time:
+
+```bash
+# Run a scenario and generate map frames for all years
+python scripts/generate_video.py --scenario polycrisis --fps 4
+
+# Keep PNG frames for manual editing
+python scripts/generate_video.py --scenario baseline --fps 6 --keep-frames
+
+# Combine daily resolution run with video
+python main.py --scenario polycrisis --timestep-days 1 --output outputs_daily
+python scripts/generate_video.py --scenario polycrisis --fps 8
+```
+
+### Interactive web interface
+
+Explore parameter space and run scenario sensitivity analysis with real-time feedback using the Bokeh-based web interface:
+
+```bash
+bokeh serve scripts/web_ui.py --show
+```
+
+This launches an interactive dashboard at `http://localhost:5006` with:
+- **Scenario & shock tuning:** Select scenarios and adjust shock timing/severity
+- **Subsystem parameter sliders:** Modify energy depletion rates, EROI decline, AI growth, financial fragility, and more
+- **Live 10-year preview:** Simulation updates as you adjust parameters
+- **Key metrics dashboard:** Final stability, minimum stability, collapse indicator
+
+Example workflow:
+1. Change to `polycrisis` scenario
+2. Increase AI compute growth from 36% to 45%
+3. Shift Suez closure 1 year later (2030 instead of 2029)
+4. Observe resulting stability trajectory and collapse risk
+
+The 10-year horizon (2025–2035) enables rapid exploration before running full 75-year deterministic or Monte Carlo analyses.
+
+## Interactive Modelling
+
+The web interface enables exploratory hypothesis testing and sensitivity analysis without requiring command-line proficiency or deep familiarity with the codebase.
+
+### Typical Interactive Workflow
+
+1. **Load baseline:** Start with `baseline` scenario to understand nominal dynamics
+2. **Introduce shock:** Switch to `polycrisis` or a specific scenario (e.g., `hormuz_closure`)
+3. **Adjust parameters:** Use sliders to explore:
+   - How does increasing AI compute growth accelerate collapse?
+   - What if oil depletion slows (improved efficiency) or accelerates?
+   - How sensitive is stability to financial fragility?
+4. **Compare outcomes:** Observe real-time changes in:
+   - Stability trajectory over 10 years
+   - Minimum stability reached
+   - Whether collapse signal triggers
+5. **Document findings:** Screenshot dashboard or export CSV results for documentation
+
+### Parameter Space Coverage
+
+The web interface exposes ~20 key parameters across:
+- **Energy:** depletion rates (fossil fuels), EROI decline, renewable growth capacity
+- **AI/Compute:** accelerating growth rates, power demand limits
+- **Population:** stress-induced mortality sensitivity
+- **Finance:** debt accumulation, financial system fragility
+- **Trade:** supply-chain fragmentation risk
+- **Climate:** warming sensitivity to cumulative emissions
+
+This allows rapid exploration of:
+- **Robustness:** Which assumptions matter most for collapse timing?
+- **Policy levers:** What parameter changes most delay systemic failure?
+- **Scenario coupling:** How do multiple simultaneous shocks cascade?
+
+### Limitations of Interactive Mode
+
+- **10-year horizon:** Designed for near-term trend exploration, not long-term dynamics (use full 75-year runs for those)
+- **No Monte Carlo:** Interactive mode runs deterministic simulations; use `main.py` for uncertainty quantification
+- **Single trajectory:** Shows one path per parameter set; see `main.py` output for probability distributions
+
+For production-grade analysis, export results to CSV and conduct full Monte Carlo sensitivity via `main.py --scenario polycrisis`.
 
 ## Model Design
 
 - Time horizon: annual timesteps from 2025 to 2100.
+- Temporal resolution: supports annual or sub-annual integration via `timestep_years` or `timestep_days`.
 - Dynamics: coupled timestep system-dynamics engine with nonlinear feedbacks.
 - Stochasticity: random geopolitical events and Monte Carlo parameter uncertainty.
 - Determinism: fixed seed for reproducibility unless user changes config.
@@ -135,12 +174,54 @@ A standard run generates:
 - Scenario run CSV
 - Monte Carlo summary CSV
 
+## Map Video Generation
+
+The script `scripts/generate_video.py` creates national-resolution world map videos from simulation output using the country-level stress mapping in `world3/utils/geomap.py`.
+
+Basic usage:
+
+```bash
+python scripts/generate_video.py
+```
+
+Useful options:
+- `--config`: YAML config path (default `config/default.yaml`)
+- `--scenario`: scenario module name (for example `polycrisis`)
+- `--output`: output video file path (defaults to `outputs/map_<scenario>.mp4`)
+- `--frames-dir`: temporary frame directory (defaults to `outputs/frames_<scenario>`)
+- `--fps`: output frame rate (default `4`)
+- `--keep-frames`: keep PNG frames after encoding
+
+Examples:
+
+```bash
+python scripts/generate_video.py --scenario polycrisis --fps 6
+python scripts/generate_video.py --scenario polycrisis --fps 6 --keep-frames
+python scripts/generate_video.py --config config/claude-opinion.yaml --scenario polycrisis --output outputs_poly/map_poly.mp4
+```
+
+Daily-resolution video generation:
+
+```bash
+python scripts/generate_video.py --config config/default.yaml --scenario polycrisis
+```
+
+To force daily integration for this script, set `simulation.timestep_days: 1` in your chosen config file before running.
+
 ## Testing
 
-Run tests with:
+Run tests locally with:
 
 ```bash
 pytest
+```
+
+All tests run automatically on push and pull request to `main` or `develop` branches via GitHub Actions. See the test status badge at the top of this README.
+
+To run tests with coverage reporting:
+
+```bash
+pytest --cov=world3 --cov-report=term
 ```
 
 ## Limitations

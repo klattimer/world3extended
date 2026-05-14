@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import logging
 from pathlib import Path
 
@@ -20,6 +21,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", default="config/default.yaml", help="Path to YAML config")
     parser.add_argument("--scenario", default=None, help="Scenario module name under world3/scenarios")
     parser.add_argument("--output", default="outputs", help="Output directory")
+    parser.add_argument("--timestep-days", type=int, default=None, help="Override simulation timestep in days")
+    parser.add_argument("--timestep-years", type=float, default=None, help="Override simulation timestep in years")
     return parser.parse_args()
 
 
@@ -32,6 +35,11 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     raw_cfg = World3Model.load_yaml(cfg_path)
+    if args.timestep_days is not None:
+        raw_cfg["simulation"]["timestep_days"] = int(args.timestep_days)
+    if args.timestep_years is not None:
+        raw_cfg["simulation"]["timestep_years"] = float(args.timestep_years)
+
     sim_cfg = SimulationConfig.from_mapping(raw_cfg)
     scenario_name = args.scenario or sim_cfg.scenario
 
@@ -48,10 +56,22 @@ def main() -> None:
         plot_regional_stress_map(df, output_dir, scenario_name),
     ]
 
+    mc_runs = sim_cfg.monte_carlo_runs
+    if sim_cfg.dt_years <= (7.0 / 365.0) and mc_runs > 20:
+        mc_runs = 20
+        logging.warning(
+            "High temporal resolution detected (dt=%.2f days); capping Monte Carlo runs to %d for runtime safety.",
+            sim_cfg.dt_years * 365.0,
+            mc_runs,
+        )
+
+    mc_base_cfg = copy.deepcopy(raw_cfg)
+    mc_base_cfg["simulation"]["monte_carlo_runs"] = mc_runs
+
     mc = run_monte_carlo(
-        base_cfg=raw_cfg,
+        base_cfg=mc_base_cfg,
         scenario_name=scenario_name,
-        runs=sim_cfg.monte_carlo_runs,
+        runs=mc_runs,
         seed=sim_cfg.seed,
     )
     mc.summary.to_csv(output_dir / f"monte_carlo_summary_{scenario_name}.csv", index=False)

@@ -27,7 +27,7 @@ def test_energy_shortage_rises_when_supply_constrained() -> None:
         "energy_demand_ej": 700.0,
         "population_billions": 8.5,
     }
-    out = system.step(state=state, trade_flow=0.7, instability=0.6, finance_stress=0.7)
+    out = system.step(state=state, trade_flow=0.7, instability=0.6, finance_stress=0.7, dt_years=1.0)
     assert out["energy_shortage"] > 0.2
 
 

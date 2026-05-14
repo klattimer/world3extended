@@ -17,6 +17,7 @@ class AIComputeSystem:
         semiconductor_constraint: float,
         available_power_ej: float,
         financial_stress: float,
+        dt_years: float,
     ) -> dict[str, float]:
         p = self.params
         base_growth = float(p["annual_compute_growth"])
@@ -32,10 +33,10 @@ class AIComputeSystem:
         finance_penalty = 0.25 * financial_stress
         real_growth = max(-0.2, constrained_growth - bottleneck - finance_penalty)
 
-        new_compute = max(0.2, compute * (1.0 + real_growth))
+        new_compute = max(0.2, compute * (1.0 + real_growth * dt_years))
 
         gains_decay = 1.0 / (1.0 + 0.4 * scaling_penalty)
-        new_efficiency = min(4.0, state["ai_efficiency_index"] * (1.0 + efficiency_gain * gains_decay))
+        new_efficiency = min(4.0, state["ai_efficiency_index"] * (1.0 + efficiency_gain * gains_decay * dt_years))
 
         baseline_power = float(p["baseline_ai_power_ej"])
         raw_power = baseline_power * new_compute / max(new_efficiency, 1e-6)

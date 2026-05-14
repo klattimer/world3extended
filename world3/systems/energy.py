@@ -33,6 +33,7 @@ class EnergySystem:
         trade_flow: float,
         instability: float,
         finance_stress: float,
+        dt_years: float,
     ) -> dict[str, float]:
         p = self.params
         decay = float(p["infrastructure_decay"])
@@ -48,8 +49,8 @@ class EnergySystem:
             depletion = float(p["depletion"][f"{src}_annual"])
             eroi_decline = float(p["eroi_decline"][src])
 
-            remaining = max(0.0, state[level_key] * (1.0 - depletion))
-            eroi = max(2.5, state[eroi_key] * (1.0 - eroi_decline))
+            remaining = max(0.0, state[level_key] * ((1.0 - depletion) ** dt_years))
+            eroi = max(2.5, state[eroi_key] * ((1.0 - eroi_decline) ** dt_years))
             extraction_penalty = np.clip(1.0 - 0.35 * instability - 0.22 * finance_stress, 0.45, 1.02)
             trade_penalty = np.clip(0.7 + 0.3 * trade_flow, 0.5, 1.0)
             gross = remaining * extraction_penalty * trade_penalty
@@ -63,8 +64,14 @@ class EnergySystem:
         nuclear_growth = float(p["nuclear_growth"])
         build_penalty = np.clip(1.0 - 0.3 * finance_stress - 0.2 * instability, 0.5, 1.0)
 
-        renewables = max(0.0, state["renewables_ej"] * (1.0 + renewables_growth * build_penalty - decay))
-        nuclear = max(0.0, state["nuclear_ej"] * (1.0 + nuclear_growth * build_penalty - 0.7 * decay))
+        renewables = max(
+            0.0,
+            state["renewables_ej"] * (1.0 + (renewables_growth * build_penalty - decay) * dt_years),
+        )
+        nuclear = max(
+            0.0,
+            state["nuclear_ej"] * (1.0 + (nuclear_growth * build_penalty - 0.7 * decay) * dt_years),
+        )
 
         outputs["renewables_ej"] = float(renewables)
         outputs["nuclear_ej"] = float(nuclear)
@@ -72,7 +79,11 @@ class EnergySystem:
         total_gross += renewables + nuclear
         total_net += _net_energy(renewables, state["renewables_eroi"]) + _net_energy(nuclear, state["nuclear_eroi"])
 
-        demand = max(100.0, state["energy_demand_ej"] * (1.0 + 0.012 * state["population_billions"] - 0.02 * finance_stress))
+        demand = max(
+            100.0,
+            state["energy_demand_ej"]
+            * (1.0 + (0.012 * state["population_billions"] - 0.02 * finance_stress) * dt_years),
+        )
         shortage = float(np.clip((demand - total_net) / max(demand, 1e-6), 0.0, 1.0))
 
         outputs.update(

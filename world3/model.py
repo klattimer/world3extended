@@ -39,7 +39,8 @@ def deep_merge(dst: dict[str, Any], src: dict[str, Any]) -> dict[str, Any]:
 class SimulationConfig:
 	start_year: int
 	end_year: int
-	timestep_years: int
+	timestep_years: float
+	timestep_days: int | None
 	seed: int
 	monte_carlo_runs: int
 	scenario: str
@@ -47,14 +48,22 @@ class SimulationConfig:
 	@classmethod
 	def from_mapping(cls, mapping: dict[str, Any]) -> "SimulationConfig":
 		sim = mapping["simulation"]
+		timestep_days = sim.get("timestep_days")
 		return cls(
 			start_year=int(sim["start_year"]),
 			end_year=int(sim["end_year"]),
-			timestep_years=int(sim["timestep_years"]),
+			timestep_years=float(sim.get("timestep_years", 1.0)),
+			timestep_days=int(timestep_days) if timestep_days is not None else None,
 			seed=int(sim["seed"]),
 			monte_carlo_runs=int(sim["monte_carlo_runs"]),
 			scenario=str(sim["scenario"]),
 		)
+
+	@property
+	def dt_years(self) -> float:
+		if self.timestep_days is not None:
+			return max(1.0 / 365.0, float(self.timestep_days) / 365.0)
+		return max(1e-6, float(self.timestep_years))
 
 
 class World3Model:
@@ -169,24 +178,37 @@ class World3Model:
 
 	def run(self) -> pd.DataFrame:
 		rows: list[dict[str, float]] = []
+		dt_years = self.config.dt_years
+		time_year = float(self.config.start_year)
+		end_year = float(self.config.end_year)
 
-		for year in range(self.config.start_year, self.config.end_year + 1, self.config.timestep_years):
-			self.state["year"] = float(year)
-			cp_shocks, exogenous_shocks = self._year_shocks(year)
+		if dt_years < 1.0:
+			logger.info("Running sub-annual mode with dt_years=%.6f (~%.2f days)", dt_years, dt_years * 365.0)
+		else:
+			logger.info("Running annual mode with dt_years=%.3f", dt_years)
+
+		while time_year <= end_year + 1e-12:
+			self.state["year"] = float(time_year)
+			shock_year = int(np.floor(time_year + 1e-9))
+			cp_shocks, exogenous_shocks = self._year_shocks(shock_year)
 
 			geo = self.geopolitics.step(
 				state=self.state,
 				trade_fragmentation=self.state["trade_fragmentation"],
 				rng=self.rng,
+				dt_years=dt_years,
 				forced_shocks=cp_shocks,
 			)
 			self.state["conflict_intensity"] = geo.conflict_intensity
 			self.state["sanctions_level"] = geo.sanctions_level
-			self.state["political_stability"] = float(np.clip(self.state["political_stability"] + geo.political_stability_delta, 0.0, 1.0))
+			self.state["political_stability"] = float(
+				np.clip(self.state["political_stability"] + geo.political_stability_delta, 0.0, 1.0)
+			)
 
 			trade_out = self.trade.step(
 				state=self.state,
 				sanctions_level=geo.sanctions_level,
+				dt_years=dt_years,
 				chokepoint_disruption=geo.chokepoint_disruption,
 			)
 			self.state.update(trade_out)
@@ -196,6 +218,7 @@ class World3Model:
 				trade_flow=self.state["trade_flow_index"],
 				instability=self.state["conflict_intensity"],
 				finance_stress=self.state["financial_stress"],
+				dt_years=dt_years,
 			)
 			self.state.update(energy_out)
 
@@ -204,22 +227,23 @@ class World3Model:
 				semiconductor_constraint=self.state["semiconductor_constraint"],
 				available_power_ej=self.state["energy_supply_ej"],
 				financial_stress=self.state["financial_stress"],
+				dt_years=dt_years,
 			)
 			self.state.update(ai_out)
 
-			ag_out = self.agriculture.step(state=self.state, shocks=exogenous_shocks)
+			ag_out = self.agriculture.step(state=self.state, shocks=exogenous_shocks, dt_years=dt_years)
 			self.state.update(ag_out)
 
-			industry_out = self.industry.step(state=self.state)
+			industry_out = self.industry.step(state=self.state, dt_years=dt_years)
 			self.state.update(industry_out)
 
-			climate_out = self.climate.step(state=self.state)
+			climate_out = self.climate.step(state=self.state, dt_years=dt_years)
 			self.state.update(climate_out)
 
-			finance_out = self.finance.step(state=self.state)
+			finance_out = self.finance.step(state=self.state, dt_years=dt_years)
 			self.state.update(finance_out)
 
-			pop_out = self.population.step(state=self.state)
+			pop_out = self.population.step(state=self.state, dt_years=dt_years)
 			self.state.update(pop_out)
 
 			self.state["cascade_pressure"] = cascade_pressure(self.state)
@@ -228,6 +252,7 @@ class World3Model:
 			self.state["systemic_stability"] = stability
 
 			rows.append(copy.deepcopy(self.state))
+			time_year += dt_years
 
 		df = pd.DataFrame(rows)
 		df["collapsed"] = detect_collapse(df).astype(float)

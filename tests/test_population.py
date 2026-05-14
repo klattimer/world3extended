@@ -24,8 +24,8 @@ def test_population_death_rate_rises_under_stress() -> None:
         "political_stability": 0.5,
     }
 
-    calm = system.step(calm_state)
-    crisis = system.step(crisis_state)
+    calm = system.step(calm_state, dt_years=1.0)
+    crisis = system.step(crisis_state, dt_years=1.0)
 
     assert crisis["death_rate"] > calm["death_rate"]
     assert crisis["famine_mortality"] > calm["famine_mortality"]

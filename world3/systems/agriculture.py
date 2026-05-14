@@ -11,7 +11,7 @@ class AgricultureSystem:
     def __init__(self, params: dict[str, Any]) -> None:
         self.params = params
 
-    def step(self, state: dict[str, float], shocks: dict[str, float]) -> dict[str, float]:
+    def step(self, state: dict[str, float], shocks: dict[str, float], dt_years: float) -> dict[str, float]:
         p = self.params
 
         fertilizer_blend = (
@@ -30,15 +30,15 @@ class AgricultureSystem:
 
         raw_food = (
             state["food_index"]
-            * max(0.25, energy_penalty)
-            * max(0.2, shipping_penalty)
-            * max(0.2, climate_penalty)
-            * max(0.2, fert_penalty)
-            * max(0.3, irrigation_penalty)
-            * max(0.25, shock_penalty)
+            * max(0.25, energy_penalty) ** dt_years
+            * max(0.2, shipping_penalty) ** dt_years
+            * max(0.2, climate_penalty) ** dt_years
+            * max(0.2, fert_penalty) ** dt_years
+            * max(0.3, irrigation_penalty) ** dt_years
+            * max(0.25, shock_penalty) ** dt_years
         )
 
-        adaptive_recovery = 0.015 * state["industrial_output_index"] * (1.0 - state["food_stress"])
+        adaptive_recovery = 0.015 * state["industrial_output_index"] * (1.0 - state["food_stress"]) * dt_years
         food_index = np.clip(raw_food + adaptive_recovery, 0.1, 1.5)
 
         food_per_capita = food_index / max(0.1, state["population_billions"] / 8.2)

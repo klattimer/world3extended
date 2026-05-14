@@ -11,7 +11,7 @@ class FinanceSystem:
     def __init__(self, params: dict[str, Any]) -> None:
         self.params = params
 
-    def step(self, state: dict[str, float]) -> dict[str, float]:
+    def step(self, state: dict[str, float], dt_years: float) -> dict[str, float]:
         p = self.params
         debt_growth_base = float(p["debt_growth_base"])
         fragility_sens = float(p["fragility_sensitivity"])
@@ -26,14 +26,21 @@ class FinanceSystem:
             + 0.2 * state["climate_damage"]
         )
 
-        debt_to_gdp = max(0.3, state["debt_to_gdp"] * (1.0 + debt_growth_base + 0.08 * shock_pressure - 0.02 * state["industrial_output_index"]))
-        inflation = max(0.7, state["inflation_index"] * (1.0 + infl_energy * state["energy_shortage"] + infl_food * state["food_stress"]))
+        debt_growth = debt_growth_base + 0.08 * shock_pressure - 0.02 * state["industrial_output_index"]
+        inflation_growth = infl_energy * state["energy_shortage"] + infl_food * state["food_stress"]
 
+        debt_to_gdp = max(0.3, state["debt_to_gdp"] * (1.0 + debt_growth * dt_years))
+        inflation = max(0.7, state["inflation_index"] * (1.0 + inflation_growth * dt_years))
+
+        stress_persistence = 0.6**dt_years
         financial_stress = np.clip(
-            0.6 * state["financial_stress"]
-            + fragility_sens * shock_pressure
-            + 0.12 * max(0.0, debt_to_gdp - 2.2)
-            + 0.08 * max(0.0, inflation - 1.0),
+            stress_persistence * state["financial_stress"]
+            + (1.0 - stress_persistence)
+            * (
+                fragility_sens * shock_pressure
+                + 0.12 * max(0.0, debt_to_gdp - 2.2)
+                + 0.08 * max(0.0, inflation - 1.0)
+            ),
             0.0,
             1.0,
         )
